@@ -131,14 +131,18 @@ func (nc *NewsController) Create(c echo.Context) error {
 func (nc *NewsController) Delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 
+	// Hapus data berita dari database
 	err := nc.newsUseCase.Delete(id)
 	if err != nil {
 		return c.JSON(utils.ConvertResponseCode(err), base.NewErrorResponse(err.Error()))
 	}
 
+	// Hapus file terkait dari direktori lokal
 	err = nc.newsFileUseCase.DeleteByNewsID(id)
 	if err != nil {
-		return c.JSON(utils.ConvertResponseCode(err), base.NewErrorResponse(err.Error()))
+		// Jika file gagal dihapus, kembalikan response error
+		// Namun, data berita di database sudah terhapus
+		return c.JSON(http.StatusInternalServerError, base.NewErrorResponse("Failed to delete associated files, but news data deleted"))
 	}
 
 	return c.JSON(http.StatusOK, base.NewSuccessResponse("Success Delete News", nil))
@@ -191,21 +195,23 @@ func (nc *NewsController) Update(c echo.Context) error {
 	newsResponse := news_response.UpdateFromEntitiesToResponse(&news)
 
 	if len(files) != 0 {
+		// Hapus file lama
 		err = nc.newsFileUseCase.DeleteByNewsID(news.ID)
 		if err != nil {
-			return c.JSON(utils.ConvertResponseCode(err), base.NewErrorResponse(err.Error()))
+			return c.JSON(http.StatusInternalServerError, base.NewErrorResponse("Failed to delete old files"))
 		}
 
+		// Simpan file baru
 		newsFile, err := nc.newsFileUseCase.Create(files, news.ID)
 		if err != nil {
-			return c.JSON(utils.ConvertResponseCode(err), base.NewErrorResponse(err.Error()))
+			return c.JSON(http.StatusInternalServerError, base.NewErrorResponse("Failed to save new files"))
 		}
 
+		// Update response dengan file baru
 		newsFileResponse := []*news_file_response.NewsFile{}
 		for _, file := range newsFile {
 			newsFileResponse = append(newsFileResponse, news_file_response.FromEntitiesToResponse(&file))
 		}
-
 		newsResponse.Files = newsFileResponse
 	}
 

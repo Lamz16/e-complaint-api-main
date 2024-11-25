@@ -19,6 +19,7 @@ type NewsFile struct {
 type NewsFileRepositoryInterface interface {
 	Create(newsFiles []*NewsFile) error
 	DeleteByNewsID(newsID int) error
+	FindByNewsID(newsID int) ([]NewsFile, error)
 }
 
 type NewsFileGCSAPIInterface interface {

@@ -37,3 +37,14 @@ func (r *ComplaintFileRepo) DeleteByComplaintID(complaintID string) error {
 
 	return nil
 }
+
+func (r *ComplaintFileRepo) FindByComplaintID(complaintID string) ([]entities.ComplaintFile, error) {
+	var complaintFiles []entities.ComplaintFile
+
+	// Gunakan GORM untuk mencari file berdasarkan complaintID
+	if err := r.DB.Where("complaint_id = ?", complaintID).Find(&complaintFiles).Error; err != nil {
+		return nil, err
+	}
+
+	return complaintFiles, nil
+}

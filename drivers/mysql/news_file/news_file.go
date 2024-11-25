@@ -37,3 +37,12 @@ func (r *NewsFileRepo) DeleteByNewsID(newsID int) error {
 
 	return nil
 }
+
+func (r *NewsFileRepo) FindByNewsID(newsID int) ([]entities.NewsFile, error) {
+	var files []entities.NewsFile
+	err := r.DB.Where("news_id = ?", newsID).Find(&files).Error
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}

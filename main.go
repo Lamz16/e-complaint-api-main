@@ -88,6 +88,8 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.CORS())
 
+	e.Static("/uploads", "./uploads")
+
 	adminRepo := admin_rp.NewAdminRepo(DB)
 	adminUsecase := admin_uc.NewAdminUseCase(adminRepo)
 	AdminController := admin_cl.NewAdminController(adminUsecase)

@@ -19,6 +19,7 @@ type ComplaintFile struct {
 type ComplaintFileRepositoryInterface interface {
 	Create(complaintFiles []*ComplaintFile) error
 	DeleteByComplaintID(complaintID string) error
+	FindByComplaintID(complaintID string) ([]ComplaintFile, error)
 }
 
 type ComplaintFileGCSAPIInterface interface {

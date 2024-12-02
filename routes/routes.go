@@ -3,6 +3,7 @@ package routes
 import (
 	"e-complaint-api/controllers/admin"
 	"e-complaint-api/controllers/category"
+	"e-complaint-api/controllers/chat"
 	"e-complaint-api/controllers/chatbot"
 	"e-complaint-api/controllers/complaint"
 	"e-complaint-api/controllers/complaint_activity"
@@ -38,6 +39,7 @@ type RouteController struct {
 	ComplaintActivityController *complaint_activity.ComplaintActivityController
 	ChatbotController           *chatbot.ChatbotController
 	DashboardController         *dashboard.DashboardController
+	ChatController              *chat.ChatController
 }
 
 func (r *RouteController) InitRoute(e *echo.Echo) {
@@ -117,4 +119,7 @@ func (r *RouteController) InitRoute(e *echo.Echo) {
 	auth_user.DELETE("/news/:news-id/comments/:comment-id", r.NewsCommentController.DeleteComment)
 	// Route For Public
 
+	// Routes for Chat Feature
+	auth_user.POST("/chats", r.ChatController.SendMessage)
+	auth_user.GET("/chats/conversation", r.ChatController.GetConversation)
 }

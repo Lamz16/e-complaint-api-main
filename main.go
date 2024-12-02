@@ -71,6 +71,10 @@ import (
 	news_like_rp "e-complaint-api/drivers/mysql/news_like"
 	news_like_uc "e-complaint-api/usecases/news_like"
 
+	chat_cl "e-complaint-api/controllers/chat"
+	chat_rp "e-complaint-api/drivers/mysql/chat"
+	chat_uc "e-complaint-api/usecases/chat"
+
 	news_comment_rp "e-complaint-api/drivers/mysql/news_comment"
 	news_comment_uc "e-complaint-api/usecases/news_comment"
 
@@ -133,6 +137,10 @@ func main() {
 	newsUsecase := news_uc.NewNewsUseCase(newsRepo)
 	NewsController := news_cl.NewNewsController(newsUsecase, NewsFileUsecase)
 
+	chatRepo := chat_rp.NewChatRepository(DB)
+	chatUsecase := chat_uc.NewChatUseCase(chatRepo)
+	ChatController := chat_cl.NewChatController(chatUsecase)
+
 	complaintActivityRepo := complaint_activity_rp.NewComplaintActivityRepo(DB)
 	complaintActivityUsecase := complaint_activity_uc.NewComplaintActivityUseCase(complaintActivityRepo)
 	ComplaintActivityController := complaint_activity.NewComplaintActivityController(complaintActivityUsecase, complaintUsecase)
@@ -179,6 +187,7 @@ func main() {
 		ComplaintActivityController: ComplaintActivityController,
 		ChatbotController:           ChatbotController,
 		DashboardController:         dashboardController,
+		ChatController:              ChatController,
 	}
 
 	routes.InitRoute(e)

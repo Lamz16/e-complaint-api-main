@@ -119,7 +119,14 @@ func (r *RouteController) InitRoute(e *echo.Echo) {
 	auth_user.DELETE("/news/:news-id/comments/:comment-id", r.NewsCommentController.DeleteComment)
 	// Route For Public
 
-	// Routes for Chat Feature
-	auth_user.POST("/chats", r.ChatController.SendMessage)
-	auth_user.GET("/chats/conversation", r.ChatController.GetConversation)
+	// Route untuk Chat
+	chat := e.Group("/api/v1")
+	chat.Use(jwt) // Tambahkan middleware jika diperlukan untuk otentikasi
+
+	chat.POST("/rooms", r.ChatController.CreateRoom)
+
+	chat.POST("/rooms/:room-id/messages", r.ChatController.SendMessage)
+
+	chat.GET("/rooms", r.ChatController.GetAllRooms)
+
 }

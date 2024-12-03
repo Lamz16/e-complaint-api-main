@@ -9,28 +9,62 @@ type chatRepository struct {
 	db *gorm.DB
 }
 
-func NewChatRepository(db *gorm.DB) entities.ChatRepositoryInterface {
-	return &chatRepository{db: db}
-}
-
-func (r *chatRepository) CreateChat(chat *entities.Chat) error {
+// CreateChat saves a new message to the database
+func (r *chatRepository) CreateChat(chat *entities.Message) error {
 	return r.db.Create(chat).Error
 }
 
-func (r *chatRepository) GetChatsByUserID(userID int) ([]entities.Chat, error) {
-	var chats []entities.Chat
-	err := r.db.Where("user_id = ?", userID).Find(&chats).Error
-	return chats, err
+// GetChatsByUserID retrieves all messages sent by a specific user
+func (r *chatRepository) GetChatsByUserID(userID int) ([]entities.Message, error) {
+	var messages []entities.Message
+	err := r.db.Where("sender_id = ? AND sender_type = ?", userID, "user").Order("created_at ASC").Find(&messages).Error
+	return messages, err
 }
 
-func (r *chatRepository) GetChatsByAdminID(adminID int) ([]entities.Chat, error) {
-	var chats []entities.Chat
-	err := r.db.Where("admin_id = ?", adminID).Find(&chats).Error
-	return chats, err
+// GetChatsByAdminID retrieves all messages sent by a specific admin
+func (r *chatRepository) GetChatsByAdminID(adminID int) ([]entities.Message, error) {
+	var messages []entities.Message
+	err := r.db.Where("sender_id = ? AND sender_type = ?", adminID, "admin").Order("created_at ASC").Find(&messages).Error
+	return messages, err
 }
 
-func (r *chatRepository) GetChatsBetweenUserAndAdmin(userID, adminID int) ([]entities.Chat, error) {
-	var chats []entities.Chat
-	err := r.db.Where("user_id = ? AND admin_id = ?", userID, adminID).Order("created_at ASC").Find(&chats).Error
-	return chats, err
+// GetChatsBetweenUserAndAdmin retrieves all messages exchanged between a user and an admin
+func (r *chatRepository) GetChatsBetweenUserAndAdmin(userID, adminID int) ([]entities.Message, error) {
+	var messages []entities.Message
+	err := r.db.Where("(sender_id = ? AND sender_type = 'user') OR (sender_id = ? AND sender_type = 'admin')", userID, adminID).
+		Order("created_at ASC").Find(&messages).Error
+	return messages, err
+}
+
+// CreateRoom creates a new chat room
+func (r *chatRepository) CreateRoom(name string) (*entities.Room, error) {
+	room := &entities.Room{Name: name}
+	if err := r.db.Create(room).Error; err != nil {
+		return nil, err
+	}
+	return room, nil
+}
+
+// CreateMessage saves a new message in a specific room
+func (r *chatRepository) CreateMessage(message *entities.Message) error {
+	return r.db.Create(message).Error
+}
+
+// GetAllRooms retrieves all chat rooms with their associated messages
+func (r *chatRepository) GetAllRooms() ([]entities.Room, error) {
+	var rooms []entities.Room
+	err := r.db.Preload("Messages").Find(&rooms).Error
+	return rooms, err
+}
+
+// GetMessagesByRoomID retrieves all messages for a specific room
+func (r *chatRepository) GetMessagesByRoomID(roomID int) ([]entities.Message, error) {
+	var messages []entities.Message
+	err := r.db.Where("room_id = ?", roomID).Order("created_at ASC").Find(&messages).Error
+	return messages, err
+}
+
+// NewChatRepository initializes a new chat repository
+func NewChatRepository(db *gorm.DB) entities.ChatRepositoryInterface {
+	return &chatRepository{db: db}
 }

@@ -4,26 +4,43 @@ import (
 	"time"
 )
 
-type Chat struct {
+// Room represents a chat room where users and admins can communicate
+type Room struct {
+	ID        int       `gorm:"primaryKey"`
+	Name      string    `gorm:"not null"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	Messages  []Message `gorm:"foreignKey:RoomID"`
+}
+
+// Message represents a chat message within a room
+type Message struct {
 	ID         int       `gorm:"primaryKey"`
-	UserID     int       `gorm:"not null"`
-	AdminID    int       `gorm:"not null"`
-	Message    string    `gorm:"not null;type:text"`
-	SenderType string    `gorm:"not null"` // "user" atau "admin"
+	RoomID     int       `gorm:"not null"`
+	SenderID   int       `gorm:"not null"`
+	SenderType string    `gorm:"type:ENUM('user', 'admin');not null"`
+	Message    string    `gorm:"type:text;not null"`
 	CreatedAt  time.Time `gorm:"autoCreateTime"`
-	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 }
 
+// ChatRepositoryInterface defines methods for interacting with chat data
 type ChatRepositoryInterface interface {
-	CreateChat(chat *Chat) error
-	GetChatsByUserID(userID int) ([]Chat, error)
-	GetChatsByAdminID(adminID int) ([]Chat, error)
-	GetChatsBetweenUserAndAdmin(userID, adminID int) ([]Chat, error)
+	CreateChat(chat *Message) error
+	GetChatsByUserID(userID int) ([]Message, error)
+	GetChatsByAdminID(adminID int) ([]Message, error)
+	GetChatsBetweenUserAndAdmin(userID, adminID int) ([]Message, error)
+	GetAllRooms() ([]Room, error)
+	CreateRoom(name string) (*Room, error)
+	GetMessagesByRoomID(roomID int) ([]Message, error)
 }
 
+// ChatUseCaseInterface defines the business logic methods for chat interactions
 type ChatUseCaseInterface interface {
-	SendMessage(chat *Chat) error
-	GetUserChats(userID int) ([]Chat, error)
-	GetAdminChats(adminID int) ([]Chat, error)
-	GetConversation(userID, adminID int) ([]Chat, error)
+	SendMessage(chat *Message) error
+	GetUserChats(userID int) ([]Message, error)
+	GetAdminChats(adminID int) ([]Message, error)
+	GetConversation(userID, adminID int) ([]Message, error)
+	GetAllChatsByUser(userID int) ([]Message, error)
+	GetAllRooms() ([]Room, error)
+	CreateRoom(name string) (*Room, error)
+	GetMessagesByRoomID(roomID int) ([]Message, error)
 }

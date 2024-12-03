@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type ChatController struct {
@@ -17,12 +16,47 @@ func NewChatController(chatUsecase entities.ChatUseCaseInterface) *ChatControlle
 	return &ChatController{chatUsecase: chatUsecase}
 }
 
+func (c *ChatController) CreateRoom(ctx echo.Context) error {
+	name := ctx.QueryParam("name")
+	if name == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Room name is required"})
+	}
+
+	room, err := c.chatUsecase.CreateRoom(name)
+	if err != nil {
+		log.Println("Failed to create room:", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create room"})
+	}
+
+	return ctx.JSON(http.StatusOK, room)
+}
+
+func (c *ChatController) GetAllRooms(ctx echo.Context) error {
+	rooms, err := c.chatUsecase.GetAllRooms()
+	if err != nil {
+		log.Println("Failed to fetch rooms:", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch rooms"})
+	}
+
+	return ctx.JSON(http.StatusOK, rooms)
+}
+
 func (c *ChatController) SendMessage(ctx echo.Context) error {
+	roomID := ctx.Param("room-id") // Mengambil parameter path
+	if roomID == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Room ID is required"})
+	}
+
+	// Ubah roomID ke integer
+	roomIDInt, err := strconv.Atoi(roomID)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Room ID"})
+	}
+
 	var request struct {
-		UserID     int    `json:"userID"`
-		AdminID    int    `json:"adminID"`
+		SenderID   int    `json:"senderID"`
+		SenderType string `json:"senderType"`
 		Message    string `json:"message"`
-		SenderType string `json:"senderType"` // "user" atau "admin"
 	}
 
 	if err := ctx.Bind(&request); err != nil {
@@ -30,48 +64,22 @@ func (c *ChatController) SendMessage(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	if request.UserID == 0 || request.AdminID == 0 || request.Message == "" || request.SenderType == "" {
+	if request.SenderID <= 0 || request.SenderType == "" || request.Message == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "All fields are required"})
 	}
 
-	chat := entities.Chat{
-		UserID:     request.UserID,
-		AdminID:    request.AdminID,
-		Message:    request.Message,
+	msg := entities.Message{
+		RoomID:     roomIDInt,
+		SenderID:   request.SenderID,
 		SenderType: request.SenderType,
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
+		Message:    request.Message,
 	}
 
-	err := c.chatUsecase.SendMessage(&chat)
+	err = c.chatUsecase.SendMessage(&msg)
 	if err != nil {
 		log.Println("Failed to send message:", err)
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send message"})
 	}
 
-	log.Printf("Message sent successfully: %v", chat)
-	return ctx.JSON(http.StatusOK, chat)
-}
-
-func (c *ChatController) GetConversation(ctx echo.Context) error {
-	userID, err := strconv.Atoi(ctx.QueryParam("user_id"))
-	if err != nil || userID <= 0 {
-		log.Println("Invalid user ID:", ctx.QueryParam("user_id"))
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
-	}
-
-	adminID, err := strconv.Atoi(ctx.QueryParam("admin_id"))
-	if err != nil || adminID <= 0 {
-		log.Println("Invalid admin ID:", ctx.QueryParam("admin_id"))
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid admin ID"})
-	}
-
-	chats, err := c.chatUsecase.GetConversation(userID, adminID)
-	if err != nil {
-		log.Println("Failed to fetch chats:", err)
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch chats"})
-	}
-
-	log.Printf("Fetched conversation for userID %d and adminID %d", userID, adminID)
-	return ctx.JSON(http.StatusOK, chats)
+	return ctx.JSON(http.StatusOK, msg)
 }

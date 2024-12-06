@@ -75,6 +75,14 @@ import (
 	chat_rp "e-complaint-api/drivers/mysql/chat"
 	chat_uc "e-complaint-api/usecases/chat"
 
+	unggah_bukti_cl "e-complaint-api/controllers/unggah_bukti"
+	unggah_bukti_rp "e-complaint-api/drivers/mysql/unggah_bukti"
+	unggah_bukti_uc "e-complaint-api/usecases/unggah_bukti"
+
+	schedule_cl "e-complaint-api/controllers/schedule"
+	schedule_rp "e-complaint-api/drivers/mysql/schedule"
+	schedule_uc "e-complaint-api/usecases/schedule"
+
 	news_comment_rp "e-complaint-api/drivers/mysql/news_comment"
 	news_comment_uc "e-complaint-api/usecases/news_comment"
 
@@ -141,6 +149,14 @@ func main() {
 	chatUsecase := chat_uc.NewChatUseCase(chatRepo)
 	ChatController := chat_cl.NewChatController(chatUsecase)
 
+	unggahBuktiRepo := unggah_bukti_rp.NewUnggahBuktiRepository(DB)
+	unggahBuktiUseCase := unggah_bukti_uc.NewUnggahBuktiUseCase(unggahBuktiRepo)
+	unggahBuktiController := unggah_bukti_cl.NewUnggahBuktiController(unggahBuktiUseCase)
+
+	schedule_rp := schedule_rp.NewScheduleRepository(DB)
+	scheduleUsecase := schedule_uc.NewScheduleUseCase(schedule_rp)
+	ScheduleController := schedule_cl.NewScheduleController(scheduleUsecase)
+
 	complaintActivityRepo := complaint_activity_rp.NewComplaintActivityRepo(DB)
 	complaintActivityUsecase := complaint_activity_uc.NewComplaintActivityUseCase(complaintActivityRepo)
 	ComplaintActivityController := complaint_activity.NewComplaintActivityController(complaintActivityUsecase, complaintUsecase)
@@ -188,6 +204,8 @@ func main() {
 		ChatbotController:           ChatbotController,
 		DashboardController:         dashboardController,
 		ChatController:              ChatController,
+		UnggahBuktiController:       unggahBuktiController,
+		ScheduleController:          ScheduleController,
 	}
 
 	routes.InitRoute(e)

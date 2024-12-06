@@ -42,7 +42,7 @@ func (c *ChatController) GetAllRooms(ctx echo.Context) error {
 }
 
 func (c *ChatController) SendMessage(ctx echo.Context) error {
-	roomID := ctx.Param("room-id") // Mengambil parameter path
+	roomID := ctx.Param("room-id")
 	if roomID == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Room ID is required"})
 	}
@@ -54,9 +54,9 @@ func (c *ChatController) SendMessage(ctx echo.Context) error {
 	}
 
 	var request struct {
-		SenderID   int    `json:"senderID"`
-		SenderType string `json:"senderType"`
-		Message    string `json:"message"`
+		SenderID   int    `json:"senderID" form:"senderID"`
+		SenderType string `json:"senderType" form:"senderType"`
+		Message    string `json:"message" form:"message"`
 	}
 
 	if err := ctx.Bind(&request); err != nil {

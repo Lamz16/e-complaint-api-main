@@ -15,6 +15,8 @@ import (
 	"e-complaint-api/controllers/news_comment"
 	"e-complaint-api/controllers/news_like"
 	"e-complaint-api/controllers/regency"
+	"e-complaint-api/controllers/schedule"
+	"e-complaint-api/controllers/unggah_bukti"
 	"e-complaint-api/controllers/user"
 	"e-complaint-api/middlewares"
 	"os"
@@ -40,6 +42,8 @@ type RouteController struct {
 	ChatbotController           *chatbot.ChatbotController
 	DashboardController         *dashboard.DashboardController
 	ChatController              *chat.ChatController
+	UnggahBuktiController       *unggah_bukti.UnggahBuktiController
+	ScheduleController          *schedule.ScheduleController
 }
 
 func (r *RouteController) InitRoute(e *echo.Echo) {
@@ -71,6 +75,12 @@ func (r *RouteController) InitRoute(e *echo.Echo) {
 	admin.POST("/complaints/import", r.ComplaintController.Import)
 	admin.GET("/complaints/:complaint-id/discussions/get-recommendation", r.DiscussionController.GetAnswerRecommendation)
 	admin.GET("/admins/dashboard", r.DashboardController.GetDashboardData)
+
+	admin.GET("/schedules", r.ScheduleController.GetAll)      // Menampilkan semua jadwal
+	admin.GET("/schedules/:id", r.ScheduleController.GetByID) // Menampilkan jadwal berdasarkan ID
+	admin.POST("/schedules", r.ScheduleController.Create)     // Menambahkan jadwal
+	admin.PUT("/schedules/:id", r.ScheduleController.Update)  // Memperbarui jadwal berdasarkan ID
+	admin.DELETE("/schedules/:id", r.ScheduleController.Delete)
 
 	// Route For User
 	user := e.Group("/api/v1")
@@ -128,5 +138,12 @@ func (r *RouteController) InitRoute(e *echo.Echo) {
 	chat.POST("/rooms/:room-id/messages", r.ChatController.SendMessage)
 
 	chat.GET("/rooms", r.ChatController.GetAllRooms)
+
+	unggahBukti := e.Group("/api/v1/unggah-bukti")
+	unggahBukti.POST("", r.UnggahBuktiController.Create)
+	unggahBukti.GET("", r.UnggahBuktiController.GetAll)
+	unggahBukti.GET("/:complaint-id", r.UnggahBuktiController.GetByComplaintID)
+	unggahBukti.PUT("/:id", r.UnggahBuktiController.Update)
+	unggahBukti.DELETE("/:id", r.UnggahBuktiController.Delete)
 
 }

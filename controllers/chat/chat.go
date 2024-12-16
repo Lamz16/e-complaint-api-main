@@ -97,3 +97,27 @@ func (c *ChatController) SendMessage(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, msg)
 }
+
+func (c *ChatController) GetMessagesByRoomID(ctx echo.Context) error {
+	// Ambil parameter Room ID dari URL
+	roomID := ctx.Param("room-id")
+	if roomID == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Room ID is required"})
+	}
+
+	// Konversi Room ID ke integer
+	roomIDInt, err := strconv.Atoi(roomID)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Room ID"})
+	}
+
+	// Ambil pesan-pesan berdasarkan Room ID
+	messages, err := c.chatUsecase.GetMessagesByRoomID(roomIDInt)
+	if err != nil {
+		log.Println("Failed to fetch messages:", err)
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch messages"})
+	}
+
+	// Kirimkan data pesan ke klien
+	return ctx.JSON(http.StatusOK, messages)
+}

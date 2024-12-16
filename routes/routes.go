@@ -138,6 +138,7 @@ func (r *RouteController) InitRoute(e *echo.Echo) {
 	chat.POST("/rooms/:room-id/messages", r.ChatController.SendMessage)
 
 	chat.GET("/rooms", r.ChatController.GetAllRooms)
+	chat.GET("/rooms/:room-id/messages", r.ChatController.GetMessagesByRoomID)
 
 	unggahBukti := e.Group("/api/v1/unggah-bukti")
 	unggahBukti.POST("", r.UnggahBuktiController.Create)

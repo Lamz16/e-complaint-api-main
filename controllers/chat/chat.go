@@ -121,3 +121,26 @@ func (c *ChatController) GetMessagesByRoomID(ctx echo.Context) error {
 	// Kirimkan data pesan ke klien
 	return ctx.JSON(http.StatusOK, messages)
 }
+
+func (c *ChatController) GetRoomByID(ctx echo.Context) error {
+	// Ambil parameter room ID dari URL
+	ID := ctx.Param("id")
+	if ID == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Room ID is required"})
+	}
+
+	// Konversi room ID ke integer
+	IDInt, err := strconv.Atoi(ID)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Room ID"})
+	}
+
+	// Ambil detail room dari usecase
+	room, err := c.chatUsecase.GetRoomByID(IDInt)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Room not found"})
+	}
+
+	// Kirimkan data room ke klien
+	return ctx.JSON(http.StatusOK, room)
+}
